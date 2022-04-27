@@ -125,12 +125,27 @@ dataset <- merge(dataset,vaccines, by=c("year_week","country_code"), all.x=TRUE 
 dataset = dataset %>%
   left_join(social_restrictions, by = c("country_code" = "country_code")) %>%
   filter(year_week >= date_start &  year_week <= date_end)
-#
 
+# remove unused columns
 column_2_save = c("year_week","country_code","new_cases","positivity_rate","cases","deaths","Doses","Response_measure")
 dataset = dataset[column_2_save]
 
-
- dataset = dataset %>%
+# group active_restrictions for each year_week and country_code
+dataset = dataset %>%
    group_by(year_week,country_code,new_cases,positivity_rate,cases,deaths,Doses) %>%
    summarise(active_restrictions = paste0(Response_measure, collapse=", "))
+ 
+
+dataset <- dataset %>%
+   rename(doses = Doses) 
+
+dataset <- dataset %>%
+  rename(cases_from_tests = new_cases) 
+
+dataset <- dataset %>%
+  rename(cases_from_deaths = cases) 
+
+#ordering dataset 
+dataset = dataset[order(dataset$country_code, dataset$year_week),]
+
+write.csv(dataset,"datasets/dataset.csv", row.names = FALSE)
