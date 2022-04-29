@@ -4,6 +4,8 @@ library(ggpubr)
 library(plotly)
 library(ggplot2)
 library(hrbrthemes)
+library(ISOweek)
+
 
 dataset = read.csv("datasets/dataset.csv")
 attach(dataset)
@@ -19,7 +21,6 @@ head(dataset)
 
 # FILL NA VALUES WITH ZEROS
 dataset$doses[is.na(dataset$doses)] <- 0
-
 
 
 # we have 2 sources for number of cases (from 2 different datasets)
@@ -67,20 +68,73 @@ dataset_final = dataset_it %>%
 detach(dataset)
 attach(dataset_final)
 
+
 ## EXPLORE cases features. IT vs SE
 
+# casting ISOweek format into date due to that ggplot work with date format
+weeks_axis = paste(year_week, "1", sep="-")
+weeks_axis <- ISOweek::ISOweek2date(weeks_axis)
 
-
-#plot
-#Usual area chart
+# IT tests, cases and doses plot
 p <- dataset_final %>%
-  ggplot(aes(seq(1,length(cases_it)))) +
-  geom_line(aes(y=100*cases_it/positivity_rate_it),color="#C71EA8") +
-  geom_line(aes(y=cases_it),color="#0EC71A") +
-  geom_line(aes(y=cumsum(doses_it)),color="#001AFF") +
+  ggplot(aes(weeks_axis)) +
+  geom_line(aes(y=100*cases_it/positivity_rate_it, colour="Tests")) +
+  geom_line(aes(y=cases_it, colour="Cases")) +
+  geom_line(aes(y=cumsum(doses_it/100), colour="Doses")) +
+  scale_colour_manual("", 
+                      breaks = c("Tests", "Cases", "Doses"),
+                      values = c("#C71EA8", "#0EC71A", "#001AFF")) +
+  xlab("Num. Week") +
+  ylab("") +
+  theme_ipsum()
+# Turn it interactive with ggplotly
+p <- ggplotly(p)
+p
+
+# TODO: le costanti usate per scalare i dati sono provviorie 
+
+# IT deaths, positivity rate and doses plot
+p2 <- dataset_final %>%
+  ggplot(aes(weeks_axis))+
+  geom_line(aes(y=deaths_it, colour="Deaths")) +
+  geom_line(aes(y=positivity_rate_it*100, colour="Positivity Rate")) +
+  geom_line(aes(y=cumsum(doses_it/100000), colour="Doses")) +
+  scale_colour_manual("", 
+                      breaks = c("Deaths", "Positivity Rate", "Doses"),
+                      values = c("#C71EA8", "#0EC71A", "#001AFF")) +
+  xlab("Num. Week") +
   ylab("") +
   theme_ipsum()
 
-p <- ggplotly(p)
-p
-# Turn it interactive with ggplotly
+p2 <- ggplotly(p2)
+p2
+# Ipotesi da discutere: sul grafico p2 si può notare che l'estate scende sempre 
+# il positivity rate ma nell'inverno successivo all'ascesa delle somministrazioni 
+# dei vaccini nonostante i contagi siano comunque saliti (-> vaccino non rende immuni) 
+# le morti sono circa la meta (-> vaccino previene la morte)
+
+
+## Normality test 
+
+# Graphic test using histograms and method of moments
+par(mfrow=c(2,2))
+hist(cases_it, prob=T)
+curve(dnorm(x,mean(cases_it),sd(cases_it)), add=T)
+hist(cases_se, prob=T)
+curve(dnorm(x,mean(cases_se),sd(cases_se)), add=T)
+hist(deaths_it, prob=T)
+curve(dnorm(x,mean(deaths_it),sd(deaths_it)), add=T)
+hist(deaths_se, prob=T)
+curve(dnorm(x,mean(deaths_se),sd(deaths_se)), add=T)
+
+# Shapiro-wilk tests
+shapiro.test(cases_it)
+shapiro.test(cases_se)
+shapiro.test(deaths_it)
+shapiro.test(deaths_se)
+
+
+
+
+
+
