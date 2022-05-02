@@ -392,7 +392,7 @@ first_week <- length(weeks_axis) - weeks
 
 
 p_vaccines_it <- data_with_vaccines %>%
-  ggplot( aes(weeks_axis[first_week:91])) +
+  ggplot( aes(weeks_axis[-seq(1:first_week)])) +
   geom_line(aes(y = (doses_it), colour = "Italy"), lwd=1)+
   scale_colour_manual("",
                       breaks = c("Italy", "Sweden"),
@@ -403,7 +403,7 @@ p_vaccines_it <- data_with_vaccines %>%
   theme_excel_new()
 
 p_vaccines_se <- data_with_vaccines %>%
-  ggplot( aes(weeks_axis[first_week:91])) +
+  ggplot( aes(weeks_axis[-seq(1:first_week)])) +
   geom_line(aes(y = (doses_se), colour = "Sweden"), lwd=1)+
   scale_colour_manual("",
                       breaks = c("Italy", "Sweden"),
