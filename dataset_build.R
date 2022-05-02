@@ -1,10 +1,12 @@
+# DATASET BUILD
+
 library(ISOweek)
 library(dplyr)
 library(countrycode)
 
 # Import datasets
 deaths <- read.csv("datasets/deaths_daily.csv")
-#hospitalizations<- read.csv("datasets/hospitalizationICU_daily.csv")
+hospitalizations<- read.csv("datasets/hospitalizationICU_daily.csv")
 tests <- read.csv("datasets/tests_weekly.csv")
 social_restrictions <- read.csv("datasets/socialRestrictions_weekly.csv")
 vaccines <- read.csv("datasets/vaccines_weekly.csv")
@@ -12,7 +14,7 @@ vaccines <- read.csv("datasets/vaccines_weekly.csv")
 # VACCINES DATASET
 
 # filtering on TargetGroup feature. Select ALL value
-vaccines <- vaccines[vaccines$TargetGroup == "ALL",]
+vaccines <- vaccines[vaccines$TargetGroup == "ALL", ]
 vaccines$Doses  <-  vaccines$FirstDose + vaccines$SecondDose + vaccines$DoseAdditional1 + vaccines$UnknownDose 
 column_2_save <- c("YearWeekISO","ReportingCountry","Doses")
 vaccines <- vaccines[column_2_save]
@@ -51,6 +53,7 @@ social_restrictions$date_end <- substr(social_restrictions$date_end, start=1,sto
 #renaming Country column
 social_restrictions <- social_restrictions %>%
   rename(country_code = Country)
+
 
 
 
@@ -114,11 +117,29 @@ tests <- tests[column_2_save]
 # #table(hospitalizations$indicator)
 
 
+# hospitalization dataset
+colnames(hospitalizations)
+hospitalizations$country <-countrycode(hospitalizations$country, "country.name", "iso2c")
+hospitalizations <- hospitalizations[startsWith(hospitalizations$indicator,"Weekly"),]
+hospitalizations <- hospitalizations %>%
+  rename(country_code = country) 
+
+hospitalizations <- hospitalizations %>%
+  rename(hospitalizations = value) 
+
+column_2_save <- c("country_code", "hospitalizations", "year_week")
+hospitalizations <- hospitalizations[column_2_save]
+  
+
+
+
 
 
 # MERGING DATASETS
 dataset <- merge(tests,deaths, by=c("year_week","country_code"))
 dataset <- merge(dataset,vaccines, by=c("year_week","country_code"), all.x=TRUE )
+dataset <- merge(dataset,hospitalizations, by=c("year_week","country_code"), all.x=TRUE )
+
 
 # merge social restrictions dataset with new one
 
@@ -127,12 +148,12 @@ dataset = dataset %>%
   filter(year_week >= date_start &  year_week <= date_end)
 
 # remove unused columns
-column_2_save = c("year_week","country_code","new_cases","positivity_rate","cases","deaths","Doses","Response_measure")
+column_2_save = c("year_week","country_code","new_cases","positivity_rate","cases","deaths","Doses","Response_measure","hospitalizations")
 dataset = dataset[column_2_save]
 
 # group active_restrictions for each year_week and country_code
 dataset = dataset %>%
-   group_by(year_week,country_code,new_cases,positivity_rate,cases,deaths,Doses) %>%
+   group_by(year_week,country_code,new_cases,positivity_rate,cases,deaths,Doses,hospitalizations) %>%
    summarise(active_restrictions = paste0(Response_measure, collapse=", "))
  
 
