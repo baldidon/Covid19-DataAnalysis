@@ -134,7 +134,7 @@ p2 <- dataset_final %>%
   theme_excel_new()
 
 p2
-# Ipotesi da discutere: sul grafico p2 si pu� notare che l'estate scende sempre 
+# Ipotesi da discutere: sul grafico p2 si puo' notare che l'estate scende sempre 
 # il positivity rate ma nell'inverno successivo all'ascesa delle somministrazioni 
 # dei vaccini nonostante i contagi siano comunque saliti (-> vaccino non rende immuni) 
 # le morti sono circa la meta (-> vaccino previene la morte)
@@ -197,7 +197,7 @@ ggarrange(ph1,ph2,ph3,ph4,ncol=2, nrow=2, common.legend = FALSE )
 # Shapiro-wilk tests
 shapiro.test(cases_it)
 shapiro.test(cases_se)
-shapiro.test(deaths_it)<
+shapiro.test(deaths_it)
 shapiro.test(deaths_se)
 
 # obviously no normality!
@@ -252,7 +252,6 @@ p4 <- data_first_wave %>%
 
 p5 <- ggplot(data=data_first_wave, aes(weeks_axis[1:nrow(data_first_wave)]))+
   geom_bar(aes(y=restrictions_count_it),stat="identity",position="identity",alpha=0.7,fill="red")+
-  
   geom_bar(aes(y=restrictions_count_se),stat="identity",position="identity",fill="blue")+
   xlab("Num. Week") +
   ylab("Num restrictions") +
@@ -413,8 +412,63 @@ p_vaccines_se <- data_with_vaccines %>%
   ggtitle("new SE Vaccines doses injected. Weekly report")+
   theme_excel_new()
 
-
 ggarrange(p_vaccines_it,p_vaccines_se,ncol=2, common.legend = TRUE)
 
+## Deaths comparison after vaccines
+## TODO: mettere le giuste etichette negli assi
+scaler = 100000
+p_deaths_it <- data_with_vaccines %>%
+  ggplot( aes((weeks_axis[-seq(1:first_week)]))) +
+  geom_line(aes(y = (deaths_it), colour = "Italy"), lwd=1)+
+  geom_line(aes(y = (cumsum(doses_it)/scaler), colour = "Vaccines"), lwd=1)+
+  scale_colour_manual("",
+                      breaks = c("Italy", "Vaccines"),
+                      values = c("red", "green")) +
+  xlab("Week") +
+  ylab("Doses") +
+  ggtitle("IT Deaths trend compared to vaccines somministration")+
+  theme_excel_new()
+
+p_deaths_se <- data_with_vaccines %>%
+  ggplot( aes((weeks_axis[-seq(1:first_week)]))) +
+  geom_line(aes(y = (deaths_se), colour = "Sweden"), lwd=1)+
+  geom_line(aes(y = (cumsum(doses_se)/scaler), colour = "Vaccines"), lwd=1)+
+  scale_colour_manual("",
+                      breaks = c("Sweden", "Vaccines"),
+                      values = c("blue", "green")) +
+  xlab("Week") +
+  ylab("Doses") +
+  ggtitle("SE Deaths trend compared to vaccines somministration")+
+  theme_excel_new()
+
+ggarrange(p_deaths_it,p_deaths_se,nrow=2, common.legend = TRUE)
 
 
+## Hospitalization comparison after vaccines
+scaler = 10000000
+p_hosp_it <- data_with_vaccines %>%
+  ggplot( aes((weeks_axis[-seq(1:first_week)]))) +
+  geom_line(aes(y = (hospitalizations_it), colour = "Italy"), lwd=1)+
+  geom_line(aes(y = (cumsum(doses_it)/scaler), colour = "Vaccines"), lwd=1)+
+  scale_colour_manual("",
+                      breaks = c("Italy", "Vaccines"),
+                      values = c("red", "green")) +
+  xlab("Week") +
+  ylab("Doses") +
+  ggtitle("IT Hospitalizations trend compared to vaccines somministration")+
+  theme_excel_new()
+
+p_hosp_se <- data_with_vaccines %>%
+  ggplot( aes((weeks_axis[-seq(1:first_week)]))) +
+  geom_line(aes(y = (hospitalizations_se), colour = "Sweden"), lwd=1)+
+  geom_line(aes(y = (cumsum(doses_se)/scaler), colour = "Vaccines"), lwd=1)+
+  scale_colour_manual("",
+                      breaks = c("Sweden", "Vaccines"),
+                      values = c("blue", "green")) +
+  xlab("Week") +
+  ylab("Doses") +
+  ggtitle("SE ICU trend compared to vaccines somministration")+
+  theme_excel_new()
+
+ggarrange(p_hosp_it,p_hosp_se,nrow=2, common.legend = TRUE)
+## Results: "I vaCCinI NoN FunZioNaNoo!11!!1!!!!"
