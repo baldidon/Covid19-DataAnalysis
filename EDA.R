@@ -97,6 +97,8 @@ attach(dataset_final)
 
 ## EXPLORE cases features. IT vs SE
 
+## TODO: cambiare nomi grafici
+
 # casting ISOweek format into date due to that ggplot work with date format
 weeks_axis <- paste(year_week, "1", sep = "-")
 weeks_axis <- ISOweek::ISOweek2date(weeks_axis)
@@ -142,17 +144,6 @@ p2
 
 ## Normality test
 # Graphic test using histograms and method of moments
-# par(mfrow = c(2,2))
-# hist(cases_it, prob=T)
-# curve(dnorm(x,mean(cases_it),sd(cases_it)), add=T)
-# hist(cases_se, prob=T)
-# curve(dnorm(x,mean(cases_se),sd(cases_se)), add=T)
-# hist(deaths_it, prob=T)
-# curve(dnorm(x,mean(deaths_it),sd(deaths_it)), add=T)
-# hist(deaths_se, prob=T)
-# curve(dnorm(x,mean(deaths_se),sd(deaths_se)), add=T)
-
-
 ph1 <- dataset_final %>%
   ggplot( aes(x=cases_it)) +
   geom_histogram(aes(y=..density..) ,lwd=0.3, colour="black", fill="#e6e6e6") +
@@ -170,7 +161,6 @@ ph2 <- dataset_final %>%
   ylab("Cases") +
   ggtitle("Histogram of cases_se") +
   theme_excel_new()
-
 
 ph3 <- dataset_final %>%
   ggplot( aes(x=deaths_it)) +
@@ -220,16 +210,19 @@ p3 <- dataset_final %>%
 
 p3
 
+detach(dataset_final)
 
 #
 #
 # social restrictions analysis (pre-vaccines)
 #
 #
-data_first_wave <- dataset_final[year_week < "2020-W36", ]
 
-infection_fatality_rate_it <- 100*(data_first_wave$deaths_it/data_first_wave$cases_it)  
-infection_fatality_rate_se <- 100*( data_first_wave$deaths_se/data_first_wave$cases_se)  
+data_first_wave <- dataset_final[dataset_final$year_week < "2020-W36", ]
+attach(data_first_wave)
+
+infection_fatality_rate_it <- 100*(deaths_it/cases_it)  
+infection_fatality_rate_se <- 100*(deaths_se/cases_se)  
 
 # geom_line(aes(y = infection_fatality_rate_it, colour = "infection_fatality_rate_it")) +
 
@@ -243,7 +236,6 @@ p4 <- data_first_wave %>%
   scale_colour_manual("",
                       breaks = c("Italy", "Sweden"),
                       values = c("red", "blue")) +
-  geom_density()+
   xlab("Num. Week") +
   ylab("Num Cases") +
   ggtitle("ITvsSE cases. Weekly report")+
@@ -310,7 +302,7 @@ p8 <- data_first_wave %>%
   ggtitle("SE FATALITY RATE. Weekly report")+
   theme_excel_new()
 
-ggarrange(p7, p8,ncol=2, nrow=1, common.legend = TRUE)
+ggarrange(p7, p8,ncol=1, nrow=2, common.legend = TRUE)
 
 
 # hospitalizations:
@@ -341,7 +333,7 @@ p10 <- data_first_wave %>%
   ggtitle("new SE ICU Weekly report")+
   theme_excel_new()
 
-ggarrange(p9, p10,ncol=2, nrow=1, common.legend = TRUE)
+ggarrange(p9, p10,ncol=1, nrow=2, common.legend = TRUE)
 
 
 p11 <- data_first_wave %>%
@@ -374,6 +366,7 @@ ggarrange(ggarrange(p11, p12,ncol=2, common.legend = TRUE),
 
 # scrivere commenti su differenza di metrica
 
+detach(data_first_wave)
 
 ################################################################################
 ################################################################################
@@ -385,10 +378,11 @@ ggarrange(ggarrange(p11, p12,ncol=2, common.legend = TRUE),
 
 # ANALYSIS (with vaccines)
 # filter data
-data_with_vaccines <- dataset_final[year_week >= "2021-W01",]
+data_with_vaccines <- dataset_final[dataset_final$year_week >= "2020-W50",]
+attach(data_with_vaccines)
+
 weeks <- nrow(data_with_vaccines)
 first_week <- length(weeks_axis) - weeks 
-
 
 p_vaccines_it <- data_with_vaccines %>%
   ggplot( aes(weeks_axis[-seq(1:first_week)])) +
@@ -412,63 +406,102 @@ p_vaccines_se <- data_with_vaccines %>%
   ggtitle("new SE Vaccines doses injected. Weekly report")+
   theme_excel_new()
 
-ggarrange(p_vaccines_it,p_vaccines_se,ncol=2, common.legend = TRUE)
+ggarrange(p_vaccines_it,p_vaccines_se,nrow=2, common.legend = TRUE)
 
 ## Deaths comparison after vaccines
 ## TODO: mettere le giuste etichette negli assi
-scaler = 100000
+infection_fatality_rate_it <- 1000*(deaths_it/cases_it)  
+infection_fatality_rate_se <- 1000*(deaths_se/cases_se)  
+
+population_it = 60*10^6
+population_se = 10*10^6
+
+# Vaccination rate considering that 3 doses are somministrated to the same person (as worst case)
+vaccination_rate_it = 100 * cumsum(doses_it) / (3 * population_it) 
+vaccination_rate_se = 100 * cumsum(doses_se) / (3 * population_se)
+
 p_deaths_it <- data_with_vaccines %>%
   ggplot( aes((weeks_axis[-seq(1:first_week)]))) +
-  geom_line(aes(y = (deaths_it), colour = "Italy"), lwd=1)+
-  geom_line(aes(y = (cumsum(doses_it)/scaler), colour = "Vaccines"), lwd=1)+
+  geom_line(aes(y = (infection_fatality_rate_it), colour = "Italy"), lwd=1)+
+  geom_line(aes(y = (vaccination_rate_it), colour = "Vaccines"), lwd=1)+
+  scale_y_continuous(
+    name = "% of vaccinated population ",
+    sec.axis = sec_axis(~./10,"Infection Fatality Rate IT")
+
+  ) +
   scale_colour_manual("",
                       breaks = c("Italy", "Vaccines"),
                       values = c("red", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  ggtitle("IT Deaths trend compared to vaccines somministration")+
-  theme_excel_new()
+  ggtitle("IT Deaths trend compared to vaccines somministration")
+  #theme_excel_new()
 
 p_deaths_se <- data_with_vaccines %>%
   ggplot( aes((weeks_axis[-seq(1:first_week)]))) +
-  geom_line(aes(y = (deaths_se), colour = "Sweden"), lwd=1)+
-  geom_line(aes(y = (cumsum(doses_se)/scaler), colour = "Vaccines"), lwd=1)+
+  geom_line(aes(y = (infection_fatality_rate_se), colour = "Sweden"), lwd=1)+
+  geom_line(aes(y = (vaccination_rate_se), colour = "Vaccines"), lwd=1)+
+  scale_y_continuous(
+    name = "% of vaccinated population ",
+    sec.axis = sec_axis(~./10,"Infection Fatality Rate SE")
+    
+  ) +
   scale_colour_manual("",
                       breaks = c("Sweden", "Vaccines"),
                       values = c("blue", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  ggtitle("SE Deaths trend compared to vaccines somministration")+
-  theme_excel_new()
+  ggtitle("SE Deaths trend compared to vaccines somministration")
+#  theme_excel_new()
 
 ggarrange(p_deaths_it,p_deaths_se,nrow=2, common.legend = TRUE)
 
 
+
 ## Hospitalization comparison after vaccines
-scaler = 10000000
+
+# Those coeff. allow us to get absolute value of hospitalizations (sample are on 100000 population)
+coef_population_it = 600
+coef_population_se = 100
+
+hosp_rate_it = coef_population_it * hospitalizations_it / cases_it
+hosp_rate_se = coef_population_se * hospitalizations_se / cases_se
+
+
+## TODO: change theme
+
 p_hosp_it <- data_with_vaccines %>%
   ggplot( aes((weeks_axis[-seq(1:first_week)]))) +
-  geom_line(aes(y = (hospitalizations_it), colour = "Italy"), lwd=1)+
-  geom_line(aes(y = (cumsum(doses_it)/scaler), colour = "Vaccines"), lwd=1)+
+  geom_line(aes(y = (1000 * hosp_rate_it), colour = "Italy"), lwd=1)+
+  geom_line(aes(y = (vaccination_rate_it), colour = "Vaccines"), lwd=1)+
+  scale_y_continuous(
+    name = "% of vaccinated population ",
+    sec.axis = sec_axis(~./1000,"Hospitalization rate IT")
+    
+  ) +
   scale_colour_manual("",
                       breaks = c("Italy", "Vaccines"),
                       values = c("red", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  ggtitle("IT Hospitalizations trend compared to vaccines somministration")+
-  theme_excel_new()
+  ggtitle("IT Hospitalizations trend compared to vaccines somministration")
+  #theme_excel_new()
+p_hosp_it
 
 p_hosp_se <- data_with_vaccines %>%
   ggplot( aes((weeks_axis[-seq(1:first_week)]))) +
-  geom_line(aes(y = (hospitalizations_se), colour = "Sweden"), lwd=1)+
-  geom_line(aes(y = (cumsum(doses_se)/scaler), colour = "Vaccines"), lwd=1)+
+  geom_line(aes(y = (5000*hosp_rate_se), colour = "Sweden"), lwd=1)+
+  geom_line(aes(y = (vaccination_rate_se), colour = "Vaccines"), lwd=1)+
+  scale_y_continuous(
+    name = "% of vaccinated population ",
+    sec.axis = sec_axis(~./5000,"Hospitalization rate SE")
+    
+  ) +
   scale_colour_manual("",
                       breaks = c("Sweden", "Vaccines"),
                       values = c("blue", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  ggtitle("SE ICU trend compared to vaccines somministration")+
-  theme_excel_new()
-
-ggarrange(p_hosp_it,p_hosp_se,nrow=2, common.legend = TRUE)
-## Results: "I vaCCinI NoN FunZioNaNoo!11!!1!!!!"
+  ggtitle("SE ICU trend compared to vaccines somministration")
+  #theme_excel_new()
+p_hosp_se

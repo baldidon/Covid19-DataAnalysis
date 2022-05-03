@@ -13,8 +13,10 @@ vaccines <- read.csv("datasets/vaccines_weekly.csv")
 
 # VACCINES DATASET
 
-# filtering on TargetGroup feature. Select ALL value
+# filtering on TargetGroup(age) feature. Select ALL value
 vaccines <- vaccines[vaccines$TargetGroup == "ALL", ]
+# filtering for national values and dropping regionals
+vaccines <- vaccines[vaccines$Region == vaccines$ReportingCountry, ]
 vaccines$Doses  <-  vaccines$FirstDose + vaccines$SecondDose + vaccines$DoseAdditional1 + vaccines$UnknownDose 
 column_2_save <- c("YearWeekISO","ReportingCountry","Doses")
 vaccines <- vaccines[column_2_save]
