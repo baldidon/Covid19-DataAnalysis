@@ -49,8 +49,8 @@ ks.test(cases_from_deaths,cases_from_tests)
 # the resulting p-value (0.91) confirm our hypotesis and so we can choose the feature_vector to drop freely
 
 #plot empyrical cdf with ggpubr
-# plot(ecdf(cases_from_deaths), col="blue") 
-# lines(ecdf(cases_from_tests), col="green") #TODO DA MIGLIORARE ASSOLUTAMENTE
+ plot(ecdf(cases_from_deaths), col="blue") 
+ lines(ecdf(cases_from_tests), col="green") #TODO DA MIGLIORARE ASSOLUTAMENTE
 
 
 # remove cases from deaths feature
@@ -60,24 +60,24 @@ dataset <- dataset %>%
 
 
 # FEAT.ENG. : split active_restrictions in HARD and SOFT restrictions;
-hard_restrictions_set <- c("StayHomeOrder",
-                        "RegionalStayHomeOrder",
-                        "ClosDaycare",
-                        "ClosPrim",
-                        "BanOnAllEvents",
-                        "ClosPubAny",
-                        "ClosureOfPublicTransport",
-                        "NonEssentialShops",
-                        "MaskMandatoryAllSpaces")
+# hard_restrictions_set <- c("StayHomeOrder",
+#                         "RegionalStayHomeOrder",
+#                         "ClosDaycare",
+#                         "ClosPrim",
+#                         "BanOnAllEvents",
+#                         "ClosPubAny",
+#                         "ClosureOfPublicTransport",
+#                         "NonEssentialShops",
+#                         "MaskMandatoryAllSpaces")
 
 # regex checks if resctriction contain comma or is EOL
-dataset$hard_restrictions <- grepl(paste(hard_restrictions_set , collapse = "(,|$)|"),
-                                  dataset$active_restrictions
-                                  )
+# dataset$hard_restrictions <- grepl(paste(hard_restrictions_set , collapse = "(,|$)|"),
+#                                   dataset$active_restrictions
+#                                   )
 
 # check frequencies of hard and soft restriction
 # HARD: TRUE
-table(dataset$hard_restrictions)
+# table(dataset$hard_restrictions)
 
 # insert new Feature, a SOFT RESTRICTION'S COUNTER
 dataset$restrictions_count <- sapply(dataset$active_restrictions, function(x) length(unlist(strsplit(as.character(x), split=","))))
@@ -93,6 +93,27 @@ dataset_final = dataset_it %>%
 
 detach(dataset)
 attach(dataset_final)
+
+
+mean(cases_it)
+sd(cases_it)
+mean(deaths_it)
+sd(deaths_it)
+mean(hospitalizations_it)
+sd(hospitalizations_it)
+mean(positivity_rate_it)
+sd(positivity_rate_it)
+
+
+mean(cases_se)
+sd(cases_se)
+mean(deaths_se)
+sd(deaths_se)
+mean(hospitalizations_se)
+sd(hospitalizations_se)
+mean(positivity_rate_se)
+sd(positivity_rate_se)
+
 
 
 ## EXPLORE cases features. IT vs SE
@@ -144,8 +165,10 @@ ph1 <- dataset_final %>%
   geom_line(aes(y = dnorm(cases_it,mean(cases_it),sd(cases_it))), colour = "red", lwd=1, lty="longdash") +
   xlab("Week") +
   ylab("Cases") +
-  ggtitle("IT Cases") +
-  theme_excel_new()
+  ggtitle("Cases") +
+  theme_excel_new() +
+  theme(axis.text = element_text(size = 11, color="black"), title = element_text(color="black"))
+
 
 ph2 <- dataset_final %>%
   ggplot( aes(x=cases_se)) +
@@ -153,8 +176,10 @@ ph2 <- dataset_final %>%
   geom_line(aes(y = dnorm(cases_se,mean(cases_se),sd(cases_se))), colour = "blue", lwd=1, lty="longdash") +
   xlab("Week") +
   ylab("Cases") +
-  ggtitle("SE Cases") +
-  theme_excel_new()
+  ggtitle("Cases") +
+  theme_excel_new() +
+  theme(axis.text = element_text(size = 11, color="black"), title = element_text(color="black"))
+  
 
 ph3 <- dataset_final %>%
   ggplot( aes(x=deaths_it)) +
@@ -162,8 +187,9 @@ ph3 <- dataset_final %>%
   geom_line(aes(y = dnorm(deaths_it,mean(deaths_it),sd(deaths_it))), colour = "red", lwd=1, lty="longdash") +
   xlab("Week") +
   ylab("Deaths") +
-  ggtitle("IT Deaths") +
-  theme_excel_new()
+  ggtitle("Deaths") +
+  theme_excel_new()+
+  theme(axis.text = element_text(size = 11, color="black"), title = element_text(color="black"))
 
 ph4 <- dataset_final %>%
   ggplot( aes(x=deaths_se)) +
@@ -171,20 +197,30 @@ ph4 <- dataset_final %>%
   geom_line(aes(y = dnorm(deaths_se,mean(deaths_se),sd(deaths_se))), colour = "blue", lwd=1, lty="longdash") +
   xlab("Week") +
   ylab("Deaths") +
-  ggtitle("SE Deaths") +
-  theme_excel_new()
+  ggtitle("Deaths") +
+  theme_excel_new()+
+  theme(axis.text = element_text(size = 11, color="black"), title = element_text(color="black"))
 
-ggarrange(ph1,ph2,ph3,ph4,ncol=2, nrow=2, common.legend = FALSE )
-
+#ggarrange(ph1,ph2,ph3,ph4,ncol=2, nrow=2, common.legend = FALSE ) # 4x4
+ggarrange(ph1,ph3,ncol=2, nrow=1, common.legend = FALSE ) #it
+ggarrange(ph2,ph4,ncol=2, nrow=1, common.legend = FALSE ) #se
 
 
 # Shapiro-wilk tests
 shapiro.test(cases_it)
-shapiro.test(cases_se)
 shapiro.test(deaths_it)
+shapiro.test(positivity_rate_it)
+shapiro.test(hospitalizations_it)
+
+shapiro.test(cases_se)
 shapiro.test(deaths_se)
+shapiro.test(positivity_rate_se)
+shapiro.test(hospitalizations_se)
+
+
 
 # obviously no normality!
+
 
 
 # plot cases_it vs cases_se
@@ -239,7 +275,10 @@ p_cases_compare <- data_first_wave %>%
   ylab("Cases") +
   #ggtitle("ITvsSE cases. Weekly report")+
   theme_excel_new() +
-  theme(legend.position = "bottom", axis.title = element_text(size=11))
+  theme(axis.title = element_text(size=12),
+        axis.text = element_text(size = 11, color="black"),
+        title = element_text(color="black"),
+        legend.text = element_text(size = 12, color="black"))
 
 
 p_restrictions <- ggplot(data=data_first_wave, aes(weeks_axis[1:nrow(data_first_wave)]))+
@@ -249,7 +288,9 @@ p_restrictions <- ggplot(data=data_first_wave, aes(weeks_axis[1:nrow(data_first_
   ylab("Num. restrictions") +
   #ggtitle("ITvsSE restrictions. Weekly report")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=11))
+  theme(axis.title = element_text(size=12),
+        axis.text = element_text(size = 11, color="black"),
+        title = element_text(color="black"))
 
 ggarrange(p_cases_compare, p_restrictions,ncol=1, nrow=2)
 
@@ -263,6 +304,7 @@ p_deaths <- data_first_wave %>%
   ggplot( aes(weeks_axis[1:nrow(data_first_wave)])) +
   geom_line(aes(y = (deaths_it), colour = "Italy"), lwd=1.2) +
   geom_line(aes(y = (deaths_se), colour = "Sweden"), lwd=1.2) +
+  scale_y_continuous(breaks=seq(0,5000,by=1000)) +
   scale_colour_manual("",
                       breaks = c("Italy", "Sweden"),
                       values = c("red", "blue")) +
@@ -270,7 +312,12 @@ p_deaths <- data_first_wave %>%
   ylab("Deaths") +
   #ggtitle("ITvsSE deaths. Weekly report")+
   theme_excel_new() +
-  theme(legend.position = "bottom", axis.title = element_text(size=11))
+  theme(axis.title = element_text(size=12),
+      axis.text = element_text(size = 11, color="black"),
+      title = element_text(color="black"),
+      legend.position = "bottom")
+
+p_deaths
 
 ggarrange(p_cases_compare, p_deaths,ncol=1, nrow=2, common.legend = TRUE, legend = "bottom")
 
@@ -317,7 +364,11 @@ p_hospit_it <- data_first_wave %>%
   ylab("New hospitalization") +
   ggtitle("New IT hospitalizations")+
   theme_excel_new() +
-  theme(legend.position = "none", axis.title = element_text(size=11))
+  theme(axis.title = element_text(size=12),
+        axis.text = element_text(size = 11, color="black"),
+        title = element_text(color="black"),
+        legend.position = "none",
+        axis.text.x = element_text(angle=30, vjust=0.5))
 
 p_hospit_it
 
@@ -325,14 +376,19 @@ p_hospit_it
 p_icu_se <- data_first_wave %>%
   ggplot( aes(weeks_axis[1:nrow(data_first_wave)])) +
   geom_line(aes(y = (100*hospitalizations_se), colour = "Sweden"), lwd=1.2)+
+  scale_y_continuous(breaks=seq(20,260,by=70))+
   scale_colour_manual("",
-                      breaks = c("Italy", "Sweden"),
-                      values = c("red", "blue")) +
+                      breaks = c("Sweden"),
+                      values = c("blue")) +
   xlab("Week") +
   ylab("New ICU") +
   ggtitle("New SE ICU admissions")+
   theme_excel_new() +
-  theme(legend.position = "none", axis.title = element_text(size=11))
+  theme(axis.title = element_text(size=12),
+        axis.text = element_text(size = 11, color="black"),
+        title = element_text(color="black"),
+        legend.position = "none",
+        axis.text.x = element_text(angle=30, vjust = 0.5))
 
 p_icu_se
 
@@ -363,9 +419,7 @@ p_cases_se <- data_first_wave %>%
   theme(legend.position = "none", axis.title = element_text(size=11))
 
 
-ggarrange(ggarrange(p_cases_it, p_cases_se,ncol=2),
-          ggarrange(p_hospit_it, p_icu_se,ncol=2),
-          nrow=2)
+ggarrange(p_hospit_it, p_icu_se,ncol=2,nrow=1)
 
 # scrivere commenti su differenza di metrica
 
