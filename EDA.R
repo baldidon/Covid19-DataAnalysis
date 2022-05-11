@@ -275,24 +275,26 @@ p_cases_compare <- data_first_wave %>%
   ylab("Cases") +
   #ggtitle("ITvsSE cases. Weekly report")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
+        axis.text.x = element_text(angle = 30, vjust = 0.5),
         title = element_text(color="black"),
-        legend.text = element_text(size = 12, color="black"))
+        legend.text = element_text(size = 16, color="black"))
 
 
 p_restrictions <- ggplot(data=data_first_wave, aes(weeks_axis[1:nrow(data_first_wave)]))+
   geom_bar(aes(y=restrictions_count_it),stat="identity",position="identity",alpha=0.7,fill="red")+
   geom_bar(aes(y=restrictions_count_se),stat="identity",position="identity",fill="blue")+
-  xlab("Week") +
+  xlab("Weeks") +
   ylab("Num. restrictions") +
   #ggtitle("ITvsSE restrictions. Weekly report")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"))
 
-ggarrange(p_cases_compare, p_restrictions,ncol=1, nrow=2)
+p_cases_compare
+ggarrange(p_cases_compare, p_restrictions,ncol=2, nrow=1, common.legend = TRUE, legend = "bottom") # 800x300
 
 # TODO: subplot other metrics
 
@@ -308,15 +310,15 @@ p_deaths <- data_first_wave %>%
   scale_colour_manual("",
                       breaks = c("Italy", "Sweden"),
                       values = c("red", "blue")) +
-  xlab("Week") +
+  xlab("Weeks") +
   ylab("Deaths") +
   #ggtitle("ITvsSE deaths. Weekly report")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-      axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+      axis.text = element_text(size = 15, color="black"),
       title = element_text(color="black"),
       legend.position = "bottom",
-      legend.text = element_text(size = 12, color="black"))
+      legend.text = element_text(size = 16, color="black"))
 
 p_deaths
 
@@ -366,8 +368,8 @@ p_hospit_it <- data_first_wave %>%
   ylab("New hospitalization") +
   ggtitle("New IT hospitalizations")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"),
         legend.position = "none",
         axis.text.x = element_text(angle=30, vjust=0.5))
@@ -388,8 +390,8 @@ p_icu_se <- data_first_wave %>%
   ylab("New ICU") +
   ggtitle("New SE ICU admissions")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"),
         legend.position = "none",
         axis.text.x = element_text(angle=30, vjust = 0.5))
@@ -506,11 +508,11 @@ p_cases_it <- data_with_vaccines %>%
   ylab("Doses") +
   #ggtitle("IT Deaths trend compared to vaccines somministration")
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"),
         legend.position = "bottom", 
-        legend.text = element_text(size = 11, color="black"))
+        legend.text = element_text(size = 16, color="black"))
 #axis.text.x = element_text(angle=30, vjust = 0.5))
 
 scaler_se = 2500
@@ -532,11 +534,11 @@ p_cases_se <- data_with_vaccines %>%
   ylab("Doses") +
   #ggtitle("SE Deaths trend compared to vaccines somministration")
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"),
         legend.position = "bottom",
-        legend.text = element_text(size = 11, color="black"))
+        legend.text = element_text(size = 16, color="black"))
 #axis.text.x = element_text(angle=30, vjust = 0.5))
 
 ggarrange(p_cases_it,p_cases_se,nrow=2)
@@ -612,11 +614,11 @@ p_fatality_it <- data_with_vaccines %>%
   xlab("Week") +
   #ggtitle("IT Deaths trend compared to vaccines somministration") +
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"),
         legend.position = "bottom",
-        legend.text = element_text(size = 11, color="black"))
+        legend.text = element_text(size = 16, color="black"))
 
 
 p_fatality_se <- data_with_vaccines %>%
@@ -625,7 +627,7 @@ p_fatality_se <- data_with_vaccines %>%
   geom_line(aes(y = (vaccination_rate_se/10), colour = "SE % vaccinated population"), lwd=1.2)+
   scale_y_continuous(
     limits = c(0,10),
-    name = "Fatality Rate",
+    name = "Fatality Rate (%)",
     sec.axis = sec_axis(~.*10," % of vaccinated population ")
     
   ) +
@@ -635,11 +637,11 @@ p_fatality_se <- data_with_vaccines %>%
   xlab("Week") +
  # ggtitle("SE Deaths trend compared to vaccines somministration")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"),
         legend.position = "bottom",
-        legend.text = element_text(size = 11, color="black"))
+        legend.text = element_text(size = 16, color="black"))
 
 ggarrange(p_fatality_it,p_fatality_se,nrow=2)
 p_fatality_se
@@ -672,11 +674,11 @@ p_hosp_it <- data_with_vaccines %>%
   ylab("Doses") +
   #ggtitle("IT Hospitalizations trend compared to vaccines somministration")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"),
         legend.position = "bottom",
-        legend.text = element_text(size = 11, color="black"))
+        legend.text = element_text(size = 16, color="black"))
 
 p_hosp_it
 
@@ -698,10 +700,10 @@ p_hosp_se <- data_with_vaccines %>%
   ylab("Doses") +
   #ggtitle("SE ICU trend compared to vaccines somministration")+
   theme_excel_new() +
-  theme(axis.title = element_text(size=12),
-        axis.text = element_text(size = 11, color="black"),
+  theme(axis.title = element_text(size=16),
+        axis.text = element_text(size = 15, color="black"),
         title = element_text(color="black"),
         legend.position = "bottom",
-        legend.text = element_text(size = 11, color="black"))
+        legend.text = element_text(size = 16, color="black"))
   
 p_hosp_se
