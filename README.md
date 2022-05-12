@@ -1,2 +1,2 @@
 # Covid19-DataAnalysis
- Analysis of vaccines and restrictions against covid19 in R
+ This repo includes scripts and paper about our _Exploratory Data Analysis_ based on _ECDC Coronavirus datasets_
