@@ -19,7 +19,6 @@ columns_name
 
 head(dataset)
 
-# TODO: spostare.
 
 # FILL NA VALUES WITH ZEROS
 dataset$doses[is.na(dataset$doses)] <- 0
@@ -60,24 +59,22 @@ dataset <- dataset %>%
 
 
 # FEAT.ENG. : split active_restrictions in HARD and SOFT restrictions;
-# hard_restrictions_set <- c("StayHomeOrder",
-#                         "RegionalStayHomeOrder",
-#                         "ClosDaycare",
-#                         "ClosPrim",
-#                         "BanOnAllEvents",
-#                         "ClosPubAny",
-#                         "ClosureOfPublicTransport",
-#                         "NonEssentialShops",
-#                         "MaskMandatoryAllSpaces")
+hard_restrictions_set <- c("StayHomeOrder",
+                         "RegionalStayHomeOrder",
+                         "ClosDaycare",
+                         "ClosPrim",
+                         "BanOnAllEvents",
+                         "ClosPubAny",
+                         "ClosureOfPublicTransport",
+                         "NonEssentialShops",
+                         "MaskMandatoryAllSpaces")
 
 # regex checks if resctriction contain comma or is EOL
-# dataset$hard_restrictions <- grepl(paste(hard_restrictions_set , collapse = "(,|$)|"),
-#                                   dataset$active_restrictions
-#                                   )
+ dataset$hard_restrictions <- grepl(paste(hard_restrictions_set , collapse = "(,|$)|"), dataset$active_restrictions)
 
 # check frequencies of hard and soft restriction
 # HARD: TRUE
-# table(dataset$hard_restrictions)
+ table(dataset$hard_restrictions)
 
 # insert new Feature, a SOFT RESTRICTION'S COUNTER
 dataset$restrictions_count <- sapply(dataset$active_restrictions, function(x) length(unlist(strsplit(as.character(x), split=","))))
@@ -118,43 +115,40 @@ sd(positivity_rate_se)
 
 ## EXPLORE cases features. IT vs SE
 
-## TODO: cambiare nomi grafici
-
 # casting ISOweek format into date due to that ggplot work with date format
 weeks_axis <- paste(year_week, "1", sep = "-")
 weeks_axis <- ISOweek::ISOweek2date(weeks_axis)
 
-# IT tests, cases and doses plot
-# TODO: to implement log-scale!
-# p_it <- dataset_final %>%
-#   ggplot(aes(weeks_axis)) +
-#   geom_line(aes(y=100*cases_it/positivity_rate_it, colour="Tests"), lwd=1) +
-#   geom_line(aes(y=cases_it, colour="Cases"), lwd=1) +
-#   geom_line(aes(y=cumsum(doses_it), colour="Doses"), lwd=1) +
-#   scale_colour_manual("", 
-#                       breaks = c("Tests", "Cases", "Doses"),
-#                       values = c("#C71EA8", "#0EC71A", "#001AFF")) +
-#   xlab("Week") +
-#   ylab("") +
-#   # ggtitle("IT tests, cases and doses") +
-#   theme_bw()
-# p_it #+ theme(legend.position = "bottom")
+#IT tests, cases and doses plot
+p_it <- dataset_final %>%
+  ggplot(aes(weeks_axis)) +
+  geom_line(aes(y=100*cases_it/positivity_rate_it, colour="Tests"), lwd=1) +
+  geom_line(aes(y=cases_it, colour="Cases"), lwd=1) +
+  geom_line(aes(y=cumsum(doses_it), colour="Doses"), lwd=1) +
+  scale_colour_manual("",
+                      breaks = c("Tests", "Cases", "Doses"),
+                      values = c("#C71EA8", "#0EC71A", "#001AFF")) +
+  xlab("Week") +
+  ylab("") +
+  ggtitle("IT tests, cases and doses") +
+  theme_bw()
+p_it #+ theme(legend.position = "bottom")
 
 
 # IT deaths, positivity rate and doses plot
-# p2 <- dataset_final %>%
-#   ggplot(aes(weeks_axis))+
-#   geom_line(aes(y=deaths_it, colour="Deaths")) +
-#   geom_line(aes(y=positivity_rate_it*100, colour="Positivity Rate")) +
-#   geom_line(aes(y=cumsum(doses_it/100000), colour="Doses")) +
-#   scale_colour_manual("", 
-#                       breaks = c("Deaths", "Positivity Rate", "Doses"),
-#                       values = c("#C71EA8", "#0EC71A", "#001AFF")) +
-#   xlab("Num. Week") +
-#   ylab("") +
-#   ggtitle("IT deaths, positivity rate and doses. Weekly report") +
-#   theme_excel_new()
-# p2
+p_general <- dataset_final %>%
+  ggplot(aes(weeks_axis))+
+  geom_line(aes(y=deaths_it, colour="Deaths")) +
+  geom_line(aes(y=positivity_rate_it*100, colour="Positivity Rate")) +
+  geom_line(aes(y=cumsum(doses_it/100000), colour="Doses")) +
+  scale_colour_manual("",
+                      breaks = c("Deaths", "Positivity Rate", "Doses"),
+                      values = c("#C71EA8", "#0EC71A", "#001AFF")) +
+  xlab("Num. Week") +
+  ylab("") +
+  ggtitle("IT deaths, positivity rate and doses. Weekly report") +
+  theme_excel_new()
+p_general
 
 
 ## Normality test
@@ -217,8 +211,6 @@ shapiro.test(deaths_se)
 shapiro.test(positivity_rate_se)
 shapiro.test(hospitalizations_se)
 
-
-
 # obviously no normality!
 
 
@@ -259,11 +251,6 @@ attach(data_first_wave)
 infection_fatality_rate_it <- 100*(deaths_it/cases_it)  
 infection_fatality_rate_se <- 100*(deaths_se/cases_se)  
 
-# geom_line(aes(y = infection_fatality_rate_it, colour = "infection_fatality_rate_it")) +
-
-#  geom_line(aes(y = infection_fatality_rate_se, colour = "infection_fatality_rate_se")) +
-
-
 p_cases_compare <- data_first_wave %>%
   ggplot( aes(weeks_axis[1:nrow(data_first_wave)])) +
   geom_line(aes(y = (cases_it), colour = "Italy"), lwd=1.2) +
@@ -273,7 +260,7 @@ p_cases_compare <- data_first_wave %>%
                       values = c("red", "blue")) +
   xlab("Weeks") +
   ylab("Cases") +
-  #ggtitle("ITvsSE cases. Weekly report")+
+  ggtitle("ITvsSE cases. Weekly report")+
   theme_excel_new() +
   theme(axis.title = element_text(size=16),
         axis.text = element_text(size = 15, color="black"),
@@ -287,7 +274,7 @@ p_restrictions <- ggplot(data=data_first_wave, aes(weeks_axis[1:nrow(data_first_
   geom_bar(aes(y=restrictions_count_se),stat="identity",position="identity",fill="blue")+
   xlab("Weeks") +
   ylab("Num. restrictions") +
-  #ggtitle("ITvsSE restrictions. Weekly report")+
+  ggtitle("ITvsSE restrictions. Weekly report")+
   theme_excel_new() +
   theme(axis.title = element_text(size=16),
         axis.text = element_text(size = 15, color="black"),
@@ -296,10 +283,6 @@ p_restrictions <- ggplot(data=data_first_wave, aes(weeks_axis[1:nrow(data_first_
 p_cases_compare
 ggarrange(p_cases_compare, p_restrictions,ncol=2, nrow=1, common.legend = TRUE, legend = "bottom") # 800x300
 
-# TODO: subplot other metrics
-
-# DA RIMUOVERE: Possiamo notare come, in una fase embrionale della pandemia si evince
-# come l'andamento settimanale dei casi, in Italia, sia drasticamente calato
 
 
 p_deaths <- data_first_wave %>%
@@ -355,8 +338,6 @@ ggarrange(p_cases_compare, p_deaths,ncol=1, nrow=2, common.legend = TRUE, legend
 
 
 # hospitalizations:
-# anche se dati non confrontabili, mostriamo andamento "nuove ospedalizzazioni"
-# per 100k (in svezia si intende nuove ammissioni in TERAPIA INTENSIVA)
 p_hospit_it <- data_first_wave %>%
   ggplot( aes(weeks_axis[1:nrow(data_first_wave)])) +
   geom_line(aes(y = (600*hospitalizations_it), colour = "Italy"), lwd=1.2)+
@@ -427,10 +408,8 @@ p_cases_se <- data_first_wave %>%
 
 ggarrange(p_hospit_it, p_icu_se,ncol=2,nrow=1)
 
-# scrivere commenti su differenza di metrica
 
 detach(data_first_wave)
-
 
 ################################################################################
 ################################################################################
@@ -475,7 +454,6 @@ first_week <- length(weeks_axis) - weeks
 
 
 ## Deaths comparison after vaccines
-## TODO: mettere le giuste etichette negli assi
 infection_fatality_rate_it <- 100*(deaths_it/cases_it)  
 infection_fatality_rate_se <- 100*(deaths_se/cases_se)  
 
@@ -506,7 +484,7 @@ p_cases_it <- data_with_vaccines %>%
                       values = c("red", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  #ggtitle("IT Deaths trend compared to vaccines somministration")
+  ggtitle("IT Deaths trend compared to vaccines somministration")
   theme_excel_new() +
   theme(axis.title = element_text(size=16),
         axis.text = element_text(size = 15, color="black"),
@@ -532,7 +510,7 @@ p_cases_se <- data_with_vaccines %>%
                       values = c("blue", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  #ggtitle("SE Deaths trend compared to vaccines somministration")
+  ggtitle("SE Deaths trend compared to vaccines somministration")
   theme_excel_new() +
   theme(axis.title = element_text(size=16),
         axis.text = element_text(size = 15, color="black"),
@@ -559,7 +537,7 @@ p_deaths_it <- data_with_vaccines %>%
                       values = c("red", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  #ggtitle("IT Deaths trend compared to vaccines somministration")
+  ggtitle("IT Deaths trend compared to vaccines somministration")
   theme_excel_new() +
   theme(axis.title = element_text(size=12),
         axis.text = element_text(size = 11, color="black"),
@@ -584,7 +562,7 @@ p_deaths_se <- data_with_vaccines %>%
                       values = c("blue", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  #ggtitle("SE Deaths trend compared to vaccines somministration")
+  ggtitle("SE Deaths trend compared to vaccines somministration")
   theme_excel_new() +
   theme(axis.title = element_text(size=12),
         axis.text = element_text(size = 11, color="black"),
@@ -612,7 +590,7 @@ p_fatality_it <- data_with_vaccines %>%
                       breaks = c("IT Fatality Rate", "IT % vaccinated population"),
                       values = c("red", "green")) +
   xlab("Week") +
-  #ggtitle("IT Deaths trend compared to vaccines somministration") +
+  ggtitle("IT Deaths trend compared to vaccines somministration") +
   theme_excel_new() +
   theme(axis.title = element_text(size=16),
         axis.text = element_text(size = 15, color="black"),
@@ -635,7 +613,7 @@ p_fatality_se <- data_with_vaccines %>%
                       breaks = c("SE Fatality Rate", "SE % vaccinated population"),
                       values = c("blue", "green")) +
   xlab("Week") +
- # ggtitle("SE Deaths trend compared to vaccines somministration")+
+  ggtitle("SE Deaths trend compared to vaccines somministration")+
   theme_excel_new() +
   theme(axis.title = element_text(size=16),
         axis.text = element_text(size = 15, color="black"),
@@ -672,7 +650,7 @@ p_hosp_it <- data_with_vaccines %>%
                       values = c("red", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  #ggtitle("IT Hospitalizations trend compared to vaccines somministration")+
+  ggtitle("IT Hospitalizations trend compared to vaccines somministration")+
   theme_excel_new() +
   theme(axis.title = element_text(size=16),
         axis.text = element_text(size = 15, color="black"),
@@ -698,7 +676,7 @@ p_hosp_se <- data_with_vaccines %>%
                       values = c("blue", "green")) +
   xlab("Week") +
   ylab("Doses") +
-  #ggtitle("SE ICU trend compared to vaccines somministration")+
+  ggtitle("SE ICU trend compared to vaccines somministration")+
   theme_excel_new() +
   theme(axis.title = element_text(size=16),
         axis.text = element_text(size = 15, color="black"),
